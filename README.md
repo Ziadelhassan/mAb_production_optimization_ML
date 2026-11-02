@@ -38,7 +38,7 @@ The custom scaler standardizes each process variable using training data. All la
 
 The program evaluates polynomial regression and k-nearest neighbors for p values from 1 to 4. An outer leave-one-batch-out loop holds out one batch and trains on the other 29. This repeats until every batch has served as the test batch.
 
-Within each training set, a three-fold grouped grid search selects polynomial degree or neighbor count. Individual batches remain together within each fold to prevent including data points from neighboring time series. Hyperparameters are selected using mAb RMSE. The model is then tested on how well it predicts a complete batch from its initial conditions.
+Within each training set, a three-fold grouped grid search selects polynomial degree or neighbor count. All observations from the same batch stay in the same fold, so that batch cannot appear in both training and validation data. Hyperparameters are selected using mAb RMSE. The model is then tested on how well it predicts a complete batch from its initial conditions.
 
 ### Forecasting and estimating uncertainty
 
@@ -59,6 +59,8 @@ It then finds the most profitable harvest time for each batch and the most profi
 
 The batch selection uses three levels for each initial condition:
 
+	Table 1. Initial conditions used to select the 30 batches.
+
 | Initial condition | Low | Middle | High |
 | --- | ---: | ---: | ---: |
 | Glucose [mM] | 5 | 20 | 35 |
@@ -74,6 +76,8 @@ The three extra batches repeat the conditions where all starting values are low,
 
 Nonlinear vector autoregression was chosen because culture variables change together over time and their relationships may be nonlinear. Polynomial regression captures curved responses and interactions through explicit polynomial terms. Degrees 2 and 3 were tested to limit complexity and runtime.
 k-nearest neighbors predicts the next values by averaging the results from similar situations in the training data. Between 2 and 5 neighbors were tested, with each neighbor given equal weight.
+
+	Table 2. mAb forecast accuracy across 30 held-out batches.
 
 | Model | p | Mean forecast RMSE [mg/L] | SD across batches [mg/L] |
 | --- | ---: | ---: | ---: |
@@ -92,9 +96,18 @@ The figures also show limitations hidden by the averages. Polynomial forecasts o
 
 Polynomial regression can capture how the variables affect each other, but small errors can build up as predictions are used to make further predictions. kNN provides a useful comparison, although averaging similar training examples can make it miss the behavior of a new batch. Since k = 5 was often selected, the highest value tested, it would be useful to try with a higher neighbor number. Also, the model settings are chosen based on how well they predict one time step ahead, so they may not be the best settings for predicting an entire batch.
 
-![Polynomial NVAR(3) forecasts at middle initial VCD](figures/forecast_BEST_poly_p03_VCD800000_N000010.png)
+<img src="figures/forecast_BEST_poly_p03_VCD800000_N000010.png"
+     alt="Polynomial NVAR(3) forecasts at an initial VCD of 800,000 cells/mL"
+     width="800">
 
-![kNN NVAR(3) forecasts at middle initial VCD](figures/forecast_BEST_knn_p03_VCD800000_N000010.png)
+**Figure 1. Polynomial NVAR(3) forecasts of mAb concentration at an initial VCD of 800,000 cells/mL.** Orange points show reference data, black lines show median forecasts, and blue shaded areas show estimated 95% prediction intervals. Rows represent initial glucose concentrations, and columns represent initial glutamine concentrations.
+
+<img src="figures/forecast_BEST_knn_p03_VCD800000_N000010.png"
+     alt="kNN NVAR(3) forecasts at an initial VCD of 800,000 cells/mL"
+     width="800">
+
+**Figure 2. kNN NVAR(3) forecasts of mAb concentration at an initial VCD of 800,000 cells/mL.** Orange points show reference data, black lines show median forecasts, and blue shaded areas show estimated 95% prediction intervals. Rows represent initial glucose concentrations, and columns represent initial glutamine concentrations.
+
 
 ### Economic objective and effects of initial conditions
 
@@ -128,6 +141,8 @@ Harvest timing matters because additional production occupies the reactor for lo
 
 The model with the lowest average forecast RMSE is selected first. Its predictions are then used to find the conditions and harvest time with the highest space-time profit. This strategy was used as choosing a model simply because it predicts the highest profit could favor one that overestimates mAb production.
 
+Table 3. Operating conditions and economic results at the best sampled harvest time for each model and the reference data.
+
 | Quantity | Polynomial recommendation | kNN optimum | Reference-data optimum |
 | --- | ---: | ---: | ---: |
 | Batch ID | 444 | 507 | 515 |
@@ -143,6 +158,8 @@ The model with the lowest average forecast RMSE is selected first. Its predictio
 | Space-time yield [mg/(L d)] | 0.1488 | 0.2760 | 0.2492 |
 
 The 95% prediction intervals below apply to the polynomial recommendation at the fixed 4-day harvest time. Culture cost is fixed at $320/L.
+
+Table 4. Predicted economic results and 95% prediction intervals for the recommended conditions at day 4.
 
 | Quantity | Median estimate | 95% prediction interval |
 | --- | ---: | ---: |
