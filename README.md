@@ -2,6 +2,7 @@
 
 This project uses nonlinear time-series models to forecast monoclonal antibody (mAb) production and identify profitable batch operating conditions. It compares polynomial regression and k-nearest neighbors using 30 simulated batch datasets. Forecasts are combined with culture costs and reactor downtime to recommend initial glucose, glutamine, viable cell density, and harvest time that maximize space-time profit within the selected conditions.
 
+
 ## Highlights
 
 - Designed a batch selection covering low, middle, and high initial conditions, with three additional replicates.
@@ -9,6 +10,7 @@ This project uses nonlinear time-series models to forecast monoclonal antibody (
 - Evaluated forecast accuracy using leave-one-batch-out validation and grouped hyperparameter tuning.
 - Estimated forecast uncertainty through repeated simulations with sampled training residuals.
 - Compared economic outcomes to identify profitable operating conditions and harvest times.
+
 
 ## Environment
 
@@ -19,6 +21,7 @@ This project uses nonlinear time-series models to forecast monoclonal antibody (
 - scikit-learn 1.9.0
 
 The program also uses the Python standard-library modules `functools`, `os`, and `sys`.
+
 
 ## Code Design
 
@@ -53,13 +56,14 @@ The program calculates mAb RMSE for each held-out batch, then reports its mean a
 The program calculates economic results at every available harvest time after time zero, using both the selected models’ predictions and the reference data. It converts hours to days, subtracts culture costs from product value, and divides the profit by the total cycle time, including downtime.
 It then finds the most profitable harvest time for each batch and the most profitable batch for each model and the reference data. The lower and upper mAb predictions are also used to calculate prediction intervals for culture value, space-time profit, and space-time yield. Results are saved as CSV files in tables/, and graphs are saved in figures/.
 
+
 ## Analysis
 
 ### Selection of the 30 batches
 
 The batch selection uses three levels for each initial condition:
 
-	Table 1. Initial conditions used to select the 30 batches.
+Table 1. Initial conditions used to select the 30 batches.
 
 | Initial condition | Low | Middle | High |
 | --- | ---: | ---: | ---: |
@@ -77,7 +81,7 @@ The three extra batches repeat the conditions where all starting values are low,
 Nonlinear vector autoregression was chosen because culture variables change together over time and their relationships may be nonlinear. Polynomial regression captures curved responses and interactions through explicit polynomial terms. Degrees 2 and 3 were tested to limit complexity and runtime.
 k-nearest neighbors predicts the next values by averaging the results from similar situations in the training data. Between 2 and 5 neighbors were tested, with each neighbor given equal weight.
 
-	Table 2. mAb forecast accuracy across 30 held-out batches.
+Table 2. mAb forecast accuracy across 30 held-out batches.
 
 | Model | p | Mean forecast RMSE [mg/L] | SD across batches [mg/L] |
 | --- | ---: | ---: | ---: |
@@ -96,11 +100,13 @@ The figures also show limitations hidden by the averages. Polynomial forecasts o
 
 Polynomial regression can capture how the variables affect each other, but small errors can build up as predictions are used to make further predictions. kNN provides a useful comparison, although averaging similar training examples can make it miss the behavior of a new batch. Since k = 5 was often selected, the highest value tested, it would be useful to try with a higher neighbor number. Also, the model settings are chosen based on how well they predict one time step ahead, so they may not be the best settings for predicting an entire batch.
 
+
 <img src="figures/forecast_BEST_poly_p03_VCD800000_N000010.png"
      alt="Polynomial NVAR(3) forecasts at an initial VCD of 800,000 cells/mL"
      width="800">
 
 **Figure 1. Polynomial NVAR(3) forecasts of mAb concentration at an initial VCD of 800,000 cells/mL.** Orange points show reference data, black lines show median forecasts, and blue shaded areas show estimated 95% prediction intervals. Rows represent initial glucose concentrations, and columns represent initial glutamine concentrations.
+
 
 <img src="figures/forecast_BEST_knn_p03_VCD800000_N000010.png"
      alt="kNN NVAR(3) forecasts at an initial VCD of 800,000 cells/mL"
